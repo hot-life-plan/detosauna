@@ -1,0 +1,385 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Noto+Serif+JP:wght@600;900&family=Montserrat:wght@300;600&display=swap');
+
+:root {
+    --primary-bg: #051421; /* 深い海のようなネイビーブルー */
+    --secondary-bg: #0b2239; /* 少し明るいネイビー */
+    --accent: #f2a65a; /* 夕日を思わせるサンセットオレンジ */
+    --text-main: #f0f0f0;
+    --text-sub: #b0ccd7; /* ライトスチールブルーに変更して海っぽく */
+    --white: #ffffff;
+    --glass: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--primary-bg);
+    color: var(--text-main);
+    font-family: 'Noto Sans JP', sans-serif;
+    line-height: 1.8;
+    overflow-x: hidden;
+}
+
+h1, h2, h3 {
+    font-family: 'Noto Serif JP', serif;
+}
+
+ul {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: 0.3s;
+}
+
+/* Scroll Animation Classes */
+.fade-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.fade-up.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Header */
+header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 20px 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    background: linear-gradient(to bottom, rgba(5, 20, 33, 0.8), transparent);
+    backdrop-filter: blur(5px);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links a:hover {
+    color: var(--accent);
+}
+
+/* Hero Section */
+.hero {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    /* JSでランダムな画像を --hero-bg にセットします。JSオフの場合はフォールバック画像が表示されます。 */
+    background-image: var(--hero-bg, url('../img/line_oa_chat_260404_192654.jpg'));  
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.5);
+    z-index: -1;
+}
+
+.hero-content h1 {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    letter-spacing: 0.15em;
+    word-break: keep-all;
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 40px;
+    color: var(--text-sub);
+}
+
+.cta-btn {
+    display: inline-block;
+    padding: 15px 40px;
+    background: var(--accent);
+    color: var(--primary-bg);
+    font-weight: bold;
+    border-radius: 50px;
+    letter-spacing: 0.1em;
+}
+
+.cta-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+}
+
+/* Common Section Style */
+section {
+    padding: 100px 10%;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.section-title h2 {
+    font-size: 2.5rem;
+    display: inline-block;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.section-title h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 50%; width: 50px; height: 2px;
+    background: var(--accent);
+    transform: translateX(-50%);
+}
+
+.en-title {
+    display: block;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    color: var(--accent);
+    letter-spacing: 0.3em;
+    margin-bottom: 10px;
+}
+
+/* About Section */
+.about-container {
+    display: flex;
+    gap: 50px;
+    align-items: center;
+}
+
+.about-text {
+    flex: 1;
+}
+
+.about-img {
+    flex: 1;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+.about-img img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Highlights Grid */
+.highlight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.highlight-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    padding: 40px;
+    border-radius: 15px;
+    transition: 0.3s;
+}
+
+.highlight-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-10px);
+}
+
+/* Instagram Section */
+.insta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.insta-item {
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    position: relative;
+}
+
+.insta-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.5s;
+}
+
+.insta-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.insta-item:hover .insta-overlay {
+    opacity: 1;
+}
+
+.insta-item:hover img {
+    transform: scale(1.1);
+}
+
+.insta-info {
+    font-size: 0.9rem;
+    color: var(--white);
+}
+
+/* Pricing Card */
+.pricing {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.price-card {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    padding: 50px 40px;
+    border-radius: 30px;
+    width: 350px;
+    text-align: center;
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+.price-card.featured {
+    border: 1px solid var(--accent);
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.1);
+}
+
+.price-card.featured::before {
+    content: 'RECOMMENDED';
+    position: absolute;
+    top: 20px; right: -20px;
+    background: var(--accent);
+    color: var(--primary-bg);
+    padding: 5px 20px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    transform: rotate(45deg);
+}
+
+.price-title {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+}
+
+.price-value {
+    font-size: 2.5rem;
+    color: var(--accent);
+    font-family: 'Montserrat', sans-serif;
+    margin-bottom: 30px;
+}
+
+.price-features {
+    text-align: left;
+    margin-bottom: 40px;
+}
+
+.price-features li {
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.price-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+}
+
+/* Access */
+.access-container {
+    display: flex;
+    gap: 50px;
+}
+
+.map-box {
+    flex: 2;
+    height: 400px;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.info-box {
+    flex: 1;
+}
+
+/* Footer */
+footer {
+    padding: 50px 10%;
+    background: #000;
+    text-align: center;
+    border-top: 1px solid var(--glass-border);
+}
+
+.footer-logo {
+    font-size: 2rem;
+    color: var(--accent);
+    margin-bottom: 20px;
+}
+
+.copyright {
+    color: var(--text-sub);
+    font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    header {
+        padding: 20px;
+    }
+    .nav-links {
+        display: none;
+    }
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+    .about-container, .access-container {
+        flex-direction: column;
+    }
+    .insta-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .price-card {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    section {
+        padding: 60px 5%;
+    }
+}
