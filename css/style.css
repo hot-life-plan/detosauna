@@ -107,7 +107,7 @@ header {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
     /* JSでランダムな画像を --hero-bg にセットします。JSオフの場合はフォールバック画像が表示されます。 */
-    background-image: var(--hero-bg, url('../img/line_oa_chat_260404_192654.jpg'));  
+    background-image: var(--hero-bg, url('../img/line_oa_chat_260404_192654.jpg'));
     background-size: cover;
     background-position: center;
     filter: brightness(0.5);
@@ -265,21 +265,29 @@ section {
     color: var(--white);
 }
 
-/* Guest Gallery Slider (Global) */
+/* Guest Gallery Slider (Global) - 画面幅いっぱいに展開 */
 .guest-grid {
-    display: flex;
-    overflow-x: hidden; /* 自動スライド中は隠す。手動操作も考慮するならautoでも良いが無限ループではhidden推奨 */
-    scroll-snap-type: none; /* 無限ループの邪魔になるのでオフ */
-    gap: 15px;
+    overflow-x: hidden;
+    min-height: 215px;
     padding-bottom: 20px;
-    max-width: 1000px;
-    margin: 0 auto;
-    scroll-behavior: auto; /* requestAnimationFrameで制御するためautoにする */
+    position: relative;
+    /* セクションの左右paddingを突き破って100vw化 */
+    width: 100vw;
+    left: 50%;
+    margin-left: -50vw;
 }
 
-/* スクロールバー自体を完全に非表示にする（滑らかさ優先） */
+/* スクロールバー非表示 */
 .guest-grid::-webkit-scrollbar {
     display: none;
+}
+
+/* JSが作成するスライドトラック */
+.slider-inner {
+    display: flex;
+    gap: 15px;
+    will-change: transform;
+    padding: 0 15px; /* 両端に少し余白 */
 }
 
 .guest-item {
@@ -318,17 +326,19 @@ section {
 
 /* Guest Gallery Placeholders */
 .guest-item.placeholder {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px dashed rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px dashed rgba(242, 166, 90, 0.35);
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
     box-sizing: border-box;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s;
 }
 
 .guest-item.placeholder:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(242, 166, 90, 0.1);
     border-color: var(--accent);
 }
 

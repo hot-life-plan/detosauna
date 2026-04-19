@@ -189,6 +189,7 @@
             headers: {
                 'Authorization': `token ${CONFIG.TOKEN}`,
                 'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json',
                 ...options.headers
             }
         });
