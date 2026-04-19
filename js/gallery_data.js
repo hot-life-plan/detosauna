@@ -3,6 +3,7 @@
 // ※ここのリストは Cloudflare Worker (AI) によって本番環境で自動的に更新されます。
 // ==========================================
 const AVAILABLE_IMAGES = [
+        'img/guest/1776589216955_guest_photo.jpg',
     'img/line_oa_chat_260404_192627.jpg',
     'img/line_oa_chat_260404_192635.jpg',
     'img/line_oa_chat_260404_192633.jpg',
