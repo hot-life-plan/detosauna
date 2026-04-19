@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 写真管理用リスト (画像を増やしたり減らしたりする場合はここを編集してください)
     // ==========================================
     const AVAILABLE_IMAGES = [
+        'img/guest/1776581051613_guest_photo.jpg',
         'img/img_1776578370954_1000000561.jpg',
         'img/line_oa_chat_260404_192627.jpg',
         'img/line_oa_chat_260404_192633.jpg',
