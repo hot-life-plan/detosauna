@@ -53,7 +53,7 @@
         </div>
 
         <h3 style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">現在のギャラリー写真 (<span id="img-count">0</span>枚)</h3>
-        <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">※ここに追加・削除すると、自動的にWebサイト(js/main.js)にも反映されます。</p>
+        <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">※ここに追加・削除すると、自動的にWebサイト(js/gallery_data.js)にも反映されます。</p>
         
         <div id="gallery">
             <!-- サムネイルがここに表示されます -->
@@ -139,8 +139,8 @@
         }
         imgCountSpan.textContent = count;
         
-        // main.js を自動更新
-        await updateMainJs(fileNames);
+        // gallery_data.js を自動更新
+        await updateGalleryDataJs(fileNames);
     }
 
     // 画像の削除
@@ -196,15 +196,15 @@
         }
     });
 
-    // main.js の配列部分を書き換える
-    async function updateMainJs(fileNames) {
+    // gallery_data.js の配列部分を書き換える
+    async function updateGalleryDataJs(fileNames) {
         try {
-            const fileHandle = await jsDirHandle.getFileHandle('main.js');
+            const fileHandle = await jsDirHandle.getFileHandle('gallery_data.js');
             const file = await fileHandle.getFile();
             let text = await file.text();
             
             // 配列の文字列を生成
-            const arrayString = '[\n        ' + fileNames.map(name => `'${name}'`).join(',\n        ') + '\n    ]';
+            const arrayString = '[\n    ' + fileNames.map(name => `'${name}'`).join(',\n    ') + '\n]';
             
             // 正規表現で AVAILABLE_IMAGES = [...] の部分を置換
             const regex = /(const\s+AVAILABLE_IMAGES\s*=\s*)\[[\s\S]*?\];/;
@@ -214,13 +214,13 @@
                 const writable = await fileHandle.createWritable();
                 await writable.write(text);
                 await writable.close();
-                console.log('main.js was successfully updated.');
+                console.log('gallery_data.js was successfully updated.');
             } else {
-                showStatus('main.js の配列部分が見つからず、サイトとの連携に失敗しました。', 'error');
+                showStatus('gallery_data.js の配列部分が見つからず、サイトとの連携に失敗しました。', 'error');
             }
         } catch (e) {
             console.error(e);
-            showStatus('main.jsの更新エラー。画像は保存されましたがサイト側への同期に失敗した可能性があります。', 'error');
+            showStatus('gallery_data.jsの更新エラー。画像は保存されましたがサイト側への同期に失敗した可能性があります。', 'error');
         }
     }
 </script>

@@ -1,24 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
-    // 写真管理用リスト (画像を増やしたり減らしたりする場合はここを編集してください)
+    // 写真リスト（AVAILABLE_IMAGES）は外部ファイルの js/gallery_data.js から読み込まれます。
     // ==========================================
-    const AVAILABLE_IMAGES = [
-        'img/line_oa_chat_260404_192627.jpg',
-        'img/line_oa_chat_260404_192635.jpg',
-        'img/line_oa_chat_260404_192633.jpg',
-        'img/line_oa_chat_260404_192641.jpg',
-        'img/line_oa_chat_260404_192644.jpg',
-        'img/line_oa_chat_260404_192646.jpg',
-        'img/line_oa_chat_260404_192649.jpg',
-        'img/line_oa_chat_260404_192639.jpg',
-        'img/line_oa_chat_260404_192654.jpg',
-        'img/line_oa_chat_260404_192652.jpg',
-        'img/line_oa_chat_260404_192657.jpg',
-        'img/line_oa_chat_260404_192700.jpg',
-        'img/line_oa_chat_260404_192703.jpg',
-        'img/line_oa_chat_260404_192705.jpg',
-        'img/line_oa_chat_260404_192708.jpg'
-    ];
 
     // 配列をランダムにシャッフルする関数
     function shuffleArray(array) {

@@ -265,21 +265,39 @@ section {
     color: var(--white);
 }
 
-/* Guest Gallery Grid */
+/* Guest Gallery Slider (Global) */
 .guest-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 8px;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 15px;
+    padding-bottom: 20px;
     max-width: 1000px;
     margin: 0 auto;
+    scroll-behavior: smooth;
+    /* Hide scrollbar on Firefox temporarily if wanted, but webkit is below */
+}
+
+.guest-grid::-webkit-scrollbar {
+    height: 8px;
+}
+.guest-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+.guest-grid::-webkit-scrollbar-thumb {
+    background-color: var(--accent);
+    border-radius: 4px;
 }
 
 .guest-item {
+    flex: 0 0 200px; /* デスクトップでは200px固定でスライド */
     aspect-ratio: 1/1;
     overflow: hidden;
     cursor: pointer;
     border-radius: 4px;
     position: relative; /* 日付の配置用 */
+    scroll-snap-align: start;
 }
 
 .guest-date {
@@ -511,35 +529,22 @@ footer {
         padding-top: 20px; /* ロゴとの重なり防止 */
     }
 
-    /* Guest Gallery Slider for Mobile */
+    /* Guest Gallery Customization for Mobile */
     .guest-grid {
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        padding-bottom: 20px;
         padding-left: 20px; /* 画面端の見栄え用 */
         padding-right: 20px;
         margin-left: -20px; /* Containerからはみ出させる */
         margin-right: -20px;
-        scroll-behavior: smooth;
+        gap: 10px;
     }
     
     .guest-grid::-webkit-scrollbar {
         height: 6px;
     }
-    .guest-grid::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 3px;
-    }
-    .guest-grid::-webkit-scrollbar-thumb {
-        background-color: var(--accent);
-        border-radius: 3px;
-    }
     
     .guest-item {
-        flex: 0 0 calc(50% - 10px); /* 画面にちょうど2枚少しはみ出るサイズ感 */
+        flex: 0 0 calc(50% - 10px); /* スマホ画面にちょうど2枚少しはみ出るサイズ感 */
         min-width: 140px;
-        scroll-snap-align: start;
     }
 }
 
