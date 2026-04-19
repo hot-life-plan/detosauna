@@ -135,138 +135,100 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemWidth = 200 + 15; // flex: 0 0 200px + gap: 15px
             const totalWidth = origItems.length * itemWidth;
 
-            console.log("Slider Version: Hyper Momentum v2.0 Loaded");
             let currentX = 0;
-            const speed = 0.3; // 自動再生
+            const autoSpeed = 0.3; 
             let velocity = 0;
-            const friction = 0.992; 
+            const friction = 0.98;
             
-            let isPaused = false;
             let isDragging = false;
+            let isFollowing = false;
             let startX = 0;
-            let startY = 0; // ★縦方向の開始位置
+            let startY = 0;
             let startCurrentX = 0;
-            let trackHistory = []; // ★移動履歴を保存する配列を追加
+            let lastX = 0;
+            let trackHistory = [];
 
-            // --- 内側ラッパー作成 ---
             const inner = document.createElement('div');
             inner.className = 'slider-inner';
-            inner.style.cssText = 'display:flex; gap:15px; will-change:transform; flex-shrink:0;';
+            inner.style.cssText = 'display:flex; gap:15px; will-change:transform;';
             [...track.children].forEach(child => inner.appendChild(child));
             track.innerHTML = '';
-            track.style.overflowX = 'hidden';
-            track.style.display = 'block';
-            track.style.position = 'relative';
+            track.style.overflow = 'hidden';
             track.appendChild(inner);
 
-            const animateSlide = () => {
-                if (!isDragging && !isPaused) {
-                    // 自動再生
-                    currentX -= speed;
+            const updateLoop = () => {
+                if (!isDragging && !isFollowing) {
+                    currentX -= autoSpeed;
                     currentX += velocity;
                     velocity *= friction;
                     if (Math.abs(velocity) < 0.1) velocity = 0;
                 }
-
-                // 無限ループ境界チェック
-                if (Math.abs(currentX) >= totalWidth) currentX += totalWidth;
+                if (currentX <= -totalWidth) currentX += totalWidth;
                 if (currentX > 0) currentX -= totalWidth;
-                
                 inner.style.transform = `translateX(${currentX}px)`;
-                requestAnimationFrame(animateSlide);
+                requestAnimationFrame(updateLoop);
             };
+            requestAnimationFrame(updateLoop);
 
-            requestAnimationFrame(animateSlide);
-
-            // --- ドラッグ / スワイプ（スマホ用） & 追従（PC用） ---
-            const startDrag = (e) => {
-                if (e.type === 'touchstart') {
-                    isDragging = true;
-                    velocity = 0;
-                    trackHistory = [];
-                    const x = e.touches[0].pageX;
-                    const y = e.touches[0].pageY; // 縦位置も記録
-                    startX = x;
-                    startY = y;
-                    startCurrentX = currentX;
-                    trackHistory.push({ x, t: Date.now() });
-                } else {
-                    // PCマウスでのクリックドラッグも念のため残すが、基本は追従
-                    isDragging = true;
-                    startX = e.pageX;
-                    lastX = e.pageX;
-                    startCurrentX = currentX;
-                }
+            const onStart = (e) => {
+                const x = e.pageX || (e.touches ? e.touches[0].pageX : 0);
+                const y = e.pageY || (e.touches ? e.touches[0].pageY : 0);
+                isDragging = true;
+                isFollowing = false;
+                startX = x;
+                startY = y;
+                lastX = x;
+                startCurrentX = currentX;
+                velocity = 0;
+                trackHistory = [];
                 inner.style.transition = 'none';
             };
 
-            const moveDrag = (e) => {
+            const onMove = (e) => {
                 const x = e.pageX || (e.touches ? e.touches[0].pageX : 0);
                 const y = e.pageY || (e.touches ? e.touches[0].pageY : 0);
-                
                 if (isDragging) {
-                    // ドラッグ中（クリック中またはスマホ）
                     if (e.touches) {
-                        const t = Date.now();
-                        trackHistory.push({ x, t });
-                        if (trackHistory.length > 10) trackHistory.shift();
-                        
-                        // ★縦移動が大きければスクロールを優先する
-                        const deltaX = Math.abs(x - startX);
-                        const deltaY = Math.abs(y - startY);
-                        if (deltaY > deltaX && deltaY > 10) {
-                            isDragging = false;
-                            return;
-                        }
-                        if(e.cancelable) e.preventDefault();
+                        const dx = Math.abs(x - startX);
+                        const dy = Math.abs(y - startY);
+                        if (dy > dx && dy > 10) { isDragging = false; return; }
+                        if (e.cancelable) e.preventDefault();
+                        trackHistory.push({ x, t: Date.now() });
+                        if (trackHistory.length > 5) trackHistory.shift();
                     }
-                    const walk = x - startX;
-                    currentX = startCurrentX + walk;
-                } else if (isPaused) {
-                    // ★【新機能】マウスが乗っているだけの時（クリックなし追従）
-                    const deltaX = x - lastX;
-                    currentX += deltaX;
+                    currentX = startCurrentX + (x - startX);
+                } else if (isFollowing) {
+                    const dx = x - lastX;
+                    currentX += dx;
                 }
-                
                 lastX = x;
-                if(e.cancelable) e.preventDefault();
             };
 
-            const endDrag = () => {
-                if (isDragging && trackHistory.length > 2) {
+            const onEnd = () => {
+                if (isDragging && trackHistory.length >= 2) {
                     const first = trackHistory[0];
                     const last = trackHistory[trackHistory.length - 1];
                     const dt = last.t - first.t;
                     const dx = last.x - first.x;
-                    if (dt > 20) {
-                        velocity = (dx / dt) * 16.6 * 2.5; // スマホはさらに滑らかに
-                    }
+                    if (dt > 20) velocity = (dx / dt) * 16.6 * 2.5; 
                 }
                 isDragging = false;
-                trackHistory = [];
             };
 
-            // 標準の画像ドラッグ機能を無効化
             track.addEventListener('dragstart', (e) => e.preventDefault());
-
-            track.addEventListener('mousedown', startDrag);
-            window.addEventListener('mousemove', moveDrag);
-            window.addEventListener('mouseup', endDrag);
-
-            track.addEventListener('touchstart', startDrag, { passive: false });
-            window.addEventListener('touchmove', moveDrag, { passive: false });
-            window.addEventListener('touchend', endDrag);
-
-            // マウスが乗ったら自動再生を止めて「追従モード」へ
+            track.addEventListener('mousedown', onStart);
+            track.addEventListener('touchstart', onStart, { passive: false });
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('touchmove', onMove, { passive: false });
+            window.addEventListener('mouseup', onEnd);
+            window.addEventListener('touchend', onEnd);
             track.addEventListener('mouseenter', (e) => {
-                isPaused = true;
-                lastX = e.pageX;
+                if (!isDragging) { isFollowing = true; lastX = e.pageX; }
             });
-            track.addEventListener('mouseleave', () => {
-                isPaused = false;
-            });
+            track.addEventListener('mouseleave', () => { isFollowing = false; });
         }
     }
+});
 
     // ギャラリーアイテム作成ヘルパー
     function createGalleryItem(src, className = 'insta-item', dateText = '') {
