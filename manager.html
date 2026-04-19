@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deto Sauna Gallery Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #ff7a1f;
+            --bg: #0d1a13;
+            --card-bg: #1a1e21;
+            --text: #ffffff;
+            --text-sub: #b0b0b0;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { font-size: 1.5rem; text-align: center; color: var(--primary); margin-bottom: 30px; }
+        
+        /* Settings Section */
+        .settings-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 5px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #000;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Upload Section */
+        #upload-area {
+            border: 2px dashed var(--primary);
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+        #upload-area i { font-size: 2rem; color: var(--primary); margin-bottom: 10px; }
+
+        /* Gallery Section */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .img-item {
+            position: relative;
+            aspect-ratio: 1;
+            background: #333;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .img-item img { width: 100%; height: 100%; object-fit: cover; }
+        .del-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255,0,0,0.8);
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* Status Toast */
+        #status {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            display: none;
+            z-index: 1000;
+            border: 1px solid var(--primary);
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1><i class="fas fa-camera-retro"></i> Gallery Manager</h1>
+    
+    <!-- 認証・設定用 -->
+    <div id="settings-view" class="settings-card">
+        <div class="input-group">
+            <label>GitHub Personal Access Token (PAT)</label>
+            <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx">
+        </div>
+        <div class="input-group">
+            <label>Repo Info (owner/repo)</label>
+            <input type="text" id="gh-repo" placeholder="user/deto-sauna-repo">
+        </div>
+        <button class="btn" id="save-settings">接続テスト & 保存</button>
+        <p style="font-size: 0.75rem; color: #888; margin-top: 10px; line-height: 1.4;">
+            ※トークンはブラウザ内にのみ保存されます。リポジトリ名は `アカウント名/プロジェクト名` の形式で入力してください。
+        </p>
+    </div>
+
+    <!-- メイン操作用 -->
+    <div id="manager-view" style="display: none;">
+        <div id="upload-area">
+            <input type="file" id="file-input" style="display:none" accept="image/*" multiple>
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p style="margin:0">タップして写真を追加</p>
+        </div>
+
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin:0">現在の写真</h3>
+            <button id="refresh-btn" style="background:none; border:none; color:var(--primary); cursor:pointer;"><i class="fas fa-sync-alt"></i> 更新</button>
+        </div>
+        
+        <div class="gallery-grid" id="gallery-grid">
+            <!-- Images will appear here -->
+        </div>
+
+        <button class="btn" id="logout-btn" style="background:#333; margin-top: 50px;">設定し直す</button>
+    </div>
+</div>
+
+<div id="status"></div>
+
+<script>
+    const CONFIG = {
+        TOKEN: localStorage.getItem('DS_TOKEN'),
+        REPO: localStorage.getItem('DS_REPO'),
+        BRANCH: 'main',
+        JS_PATH: 'js/main.js',
+        IMG_DIR: 'img/'
+    };
+
+    const statusEl = document.getElementById('status');
+    const galleryGrid = document.getElementById('gallery-grid');
+
+    function notify(msg, stay = false) {
+        statusEl.innerHTML = msg;
+        statusEl.style.display = 'block';
+        if(!stay) setTimeout(() => statusEl.style.display = 'none', 3000);
+    }
+
+    // GitHub API Helper
+    async function ghFetch(path, options = {}) {
+        const url = `https://api.github.com/repos/${CONFIG.REPO}/contents/${path}`;
+        const res = await fetch(url, {
+            ...options,
+            headers: {
+                'Authorization': `token ${CONFIG.TOKEN}`,
+                'Accept': 'application/vnd.github.v3+json',
+                ...options.headers
+            }
+        });
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+    }
+
+    // 初期化表示切り替え
+    function updateUI() {
+        if (CONFIG.TOKEN && CONFIG.REPO) {
+            document.getElementById('settings-view').style.display = 'none';
+            document.getElementById('manager-view').style.display = 'block';
+            loadGallery();
+        } else {
+            document.getElementById('settings-view').style.display = 'block';
+            document.getElementById('manager-view').style.display = 'none';
+        }
+    }
+
+    // 設定保存
+    document.getElementById('save-settings').onclick = async () => {
+        const token = document.getElementById('gh-token').value.trim();
+        const repo = document.getElementById('gh-repo').value.trim();
+        if (!token || !repo) return alert('入力してください');
+
+        notify('<i class="fas fa-spinner spinner"></i> 接続確認中...', true);
+        try {
+            // テストに js/main.js を取得してみる
+            const res = await fetch(`https://api.github.com/repos/${repo}/contents/js/main.js`, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+            if (res.status === 200) {
+                localStorage.setItem('DS_TOKEN', token);
+                localStorage.setItem('DS_REPO', repo);
+                CONFIG.TOKEN = token;
+                CONFIG.REPO = repo;
+                notify('接続成功！');
+                updateUI();
+            } else if (res.status === 404) {
+                notify('プロジェクトが見つかりません。リポジトリ名を確認してください。');
+            } else {
+                notify('認証エラー。トークンが間違っています。');
+            }
+        } catch (e) {
+            notify('エラーが発生しました。入力を確認してください。');
+        }
+    };
+
+    document.getElementById('logout-btn').onclick = () => {
+        localStorage.clear();
+        location.reload();
+    };
+
+    // ギャラリー読み込み
+    async function loadGallery() {
+        galleryGrid.innerHTML = '';
+        try {
+            const files = await ghFetch(CONFIG.IMG_DIR);
+            files.filter(f => f.name.match(/\.(jpg|jpeg|png|webp)$/i)).forEach(file => {
+                const div = document.createElement('div');
+                div.className = 'img-item';
+                div.innerHTML = `
+                    <img src="${file.download_url}" alt="">
+                    <button class="del-btn" onclick="deletePhoto('${file.name}', '${file.sha}')"><i class="fas fa-times"></i></button>
+                `;
+                galleryGrid.appendChild(div);
+            });
+        } catch (e) {
+            notify('ギャラリーの取得に失敗しました。プロジェクト構成を確認してください。');
+        }
+    }
+
+    document.getElementById('refresh-btn').onclick = loadGallery;
+
+    // 写真削除
+    window.deletePhoto = async (filename, sha) => {
+        if (!confirm('この写真を削除してもよろしいですか？')) return;
+        notify('<i class="fas fa-spinner spinner"></i> 削除中...', true);
+        try {
+            // 1. 画像ファイルを削除
+            await ghFetch(`${CONFIG.IMG_DIR}${filename}`, {
+                method: 'DELETE',
+                body: JSON.stringify({ message: `Delete ${filename} via UI`, sha, branch: CONFIG.BRANCH })
+            });
+
+            // 2. js/main.js を更新
+            await updateMainJs();
+            notify('削除完了！反映まで数分お待ちください。');
+            loadGallery();
+        } catch (e) {
+            notify('削除に失敗しました。');
+        }
+    };
+
+    // アップロード処理
+    document.getElementById('upload-area').onclick = () => document.getElementById('file-input').click();
+    document.getElementById('file-input').onchange = async (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        notify('<i class="fas fa-spinner spinner"></i> アップロード中...', true);
+        try {
+            for (const file of files) {
+                const reader = new FileReader();
+                const base64 = await new Promise((resolve) => {
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(file);
+                });
+
+                const filename = `img_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                await ghFetch(`${CONFIG.IMG_DIR}${filename}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        message: `Upload ${filename} via UI`,
+                        content: base64,
+                        branch: CONFIG.BRANCH
+                    })
+                });
+            }
+            // main.js を更新
+            await updateMainJs();
+            notify('アップロード成功！反映まで数分お待ちください。');
+            loadGallery();
+        } catch (e) {
+            notify('アップロードに失敗しました。');
+        }
+    };
+
+    // js/main.js 内の AVAILABLE_IMAGES 配列を最新の img フォルダの状態に同期する
+    async function updateMainJs() {
+        // 全ファイルリストを取得して配列文字列を生成
+        const files = await ghFetch(CONFIG.IMG_DIR);
+        const imageList = files
+            .filter(f => f.name.match(/\.(jpg|jpeg|png|webp)$/i))
+            .map(f => `'img/${f.name}'`);
+        
+        const arrayString = `const AVAILABLE_IMAGES = [\n        ${imageList.join(',\n        ')}\n    ];`;
+
+        // 現在の js/main.js を取得
+        const jsFile = await ghFetch(CONFIG.JS_PATH);
+        let content = decodeURIComponent(escape(atob(jsFile.content)));
+        
+        // 正規表現で AVAILABLE_IMAGES = [...] の部分を置換
+        const regex = /const\s+AVAILABLE_IMAGES\s*=\s*\[[\s\S]*?\];/;
+        content = content.replace(regex, arrayString);
+
+        // 更新をプッシュ
+        await ghFetch(CONFIG.JS_PATH, {
+            method: 'PUT',
+            body: JSON.stringify({
+                message: 'Update gallery mapping via UI',
+                content: btoa(unescape(encodeURIComponent(content))),
+                sha: jsFile.sha,
+                branch: CONFIG.BRANCH
+            })
+        });
+    }
+
+    updateUI();
+</script>
+</body>
+</html>
