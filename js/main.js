@@ -112,35 +112,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 fadeObservers.observe(placeholder);
             }
 
-            // 🚀 自動スライド（カルーセル）機能
-            let autoScrollInterval;
-            const startAutoScroll = () => {
-                // 3秒に1回動かす
-                autoScrollInterval = setInterval(() => {
-                    const maxScrollLeft = guestGallery.scrollWidth - guestGallery.clientWidth;
-                    // 一番右まで到達していたら最初に戻る
-                    if (guestGallery.scrollLeft >= maxScrollLeft - 10) {
-                        guestGallery.scrollTo({ left: 0, behavior: 'smooth' });
-                    } else {
-                        // 1個分の横幅(gapの15pxも含む)を計算して右へスライド
-                        const firstItem = guestGallery.querySelector('.guest-item');
-                        if (firstItem) {
-                            const slideAmount = firstItem.offsetWidth + 15;
-                            guestGallery.scrollBy({ left: slideAmount, behavior: 'smooth' });
+            // 🚀 無限ループ・スロースライド（観覧車方式）
+            const cloneGalleryItems = () => {
+                const items = [...guestGallery.children];
+                items.forEach(item => {
+                    const clone = item.cloneNode(true);
+                    // クローンにもクリックイベントを再設定
+                    clone.addEventListener('click', () => {
+                        if (item.classList.contains('placeholder')) {
+                            window.location.href = 'post.html';
+                        } else {
+                            const imgSrc = item.querySelector('img').src;
+                            const lightbox = document.getElementById('lightbox');
+                            const lightboxImg = document.getElementById('lightbox-img');
+                            lightboxImg.src = imgSrc;
+                            lightbox.style.display = 'flex';
                         }
-                    }
-                }, 3000);
+                    });
+                    guestGallery.appendChild(clone);
+                });
             };
-            const stopAutoScroll = () => clearInterval(autoScrollInterval);
+            
+            // 全てのアイテム（20枚＋クローン20枚＝計40枚）を準備
+            cloneGalleryItems();
+
+            let scrollAmount = 0;
+            const scrollSpeed = 0.5; // この数値を小さくすると更にゆっくりになります
+            let isPaused = false;
+
+            const animateScroll = () => {
+                if (!isPaused) {
+                    scrollAmount += scrollSpeed;
+                    const halfWidth = guestGallery.scrollWidth / 2;
+                    
+                    // 半分（オリジナル分）を過ぎたら、気づかれないように最初に戻す
+                    if (scrollAmount >= halfWidth) {
+                        scrollAmount = 0;
+                    }
+                    guestGallery.scrollLeft = scrollAmount;
+                }
+                requestAnimationFrame(animateScroll);
+            };
 
             // 自動スライド開始
-            startAutoScroll();
+            requestAnimationFrame(animateScroll);
 
-            // ユーザーが触っている時（ホバーやスワイプ中）は自動スライドを一時停止する
-            guestGallery.addEventListener('mouseenter', stopAutoScroll);
-            guestGallery.addEventListener('mouseleave', startAutoScroll);
-            guestGallery.addEventListener('touchstart', stopAutoScroll, {passive: true});
-            guestGallery.addEventListener('touchend', startAutoScroll);
+            // ユーザーが触っている時（ホバーやタッチ中）は一時停止
+            guestGallery.addEventListener('mouseenter', () => isPaused = true);
+            guestGallery.addEventListener('mouseleave', () => {
+                isPaused = false;
+                scrollAmount = guestGallery.scrollLeft; // 手動で動かされた位置から再開
+            });
+            guestGallery.addEventListener('touchstart', () => isPaused = true, {passive: true});
+            guestGallery.addEventListener('touchend', () => {
+                isPaused = false;
+                scrollAmount = guestGallery.scrollLeft;
+            });
         }
     }
 

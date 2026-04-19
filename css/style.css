@@ -268,36 +268,27 @@ section {
 /* Guest Gallery Slider (Global) */
 .guest-grid {
     display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
+    overflow-x: hidden; /* 自動スライド中は隠す。手動操作も考慮するならautoでも良いが無限ループではhidden推奨 */
+    scroll-snap-type: none; /* 無限ループの邪魔になるのでオフ */
     gap: 15px;
     padding-bottom: 20px;
     max-width: 1000px;
     margin: 0 auto;
-    scroll-behavior: smooth;
-    /* Hide scrollbar on Firefox temporarily if wanted, but webkit is below */
+    scroll-behavior: auto; /* requestAnimationFrameで制御するためautoにする */
 }
 
+/* スクロールバー自体を完全に非表示にする（滑らかさ優先） */
 .guest-grid::-webkit-scrollbar {
-    height: 8px;
-}
-.guest-grid::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
-}
-.guest-grid::-webkit-scrollbar-thumb {
-    background-color: var(--accent);
-    border-radius: 4px;
+    display: none;
 }
 
 .guest-item {
-    flex: 0 0 200px; /* デスクトップでは200px固定でスライド */
+    flex: 0 0 200px;
     aspect-ratio: 1/1;
     overflow: hidden;
     cursor: pointer;
     border-radius: 4px;
-    position: relative; /* 日付の配置用 */
-    scroll-snap-align: start;
+    position: relative;
 }
 
 .guest-date {
@@ -531,20 +522,15 @@ footer {
 
     /* Guest Gallery Customization for Mobile */
     .guest-grid {
-        padding-left: 20px; /* 画面端の見栄え用 */
+        padding-left: 20px;
         padding-right: 20px;
-        margin-left: -20px; /* Containerからはみ出させる */
+        margin-left: -20px;
         margin-right: -20px;
         gap: 10px;
     }
     
-    .guest-grid::-webkit-scrollbar {
-        height: 6px;
-    }
-    
     .guest-item {
-        flex: 0 0 calc(50% - 10px); /* スマホ画面にちょうど2枚少しはみ出るサイズ感 */
-        min-width: 140px;
+        flex: 0 0 160px; /* 無限ループの滑らかさのため固定サイズに変更 */
     }
 }
 
