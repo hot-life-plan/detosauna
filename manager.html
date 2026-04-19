@@ -251,7 +251,9 @@
             throw new Error('No Token');
         }
 
-        const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${path}`;
+        // キャッシュ破りのためのタイムスタンプを追加
+        const ts = Date.now();
+        const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${path}?t=${ts}`;
         log(`Fetching: ${url}`);
 
         const res = await fetch(url, {
