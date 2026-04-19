@@ -19,6 +19,7 @@
         #loading { display: none; color: #f2a65a; margin-top: 10px; }
         .spinner { animation: spin 1s linear infinite; display: inline-block; margin-right: 8px; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+        .disclaimer { font-size: 0.75rem; color: #b0ccd7; text-align: left; margin-bottom: 20px; padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; line-height: 1.5; border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
@@ -35,7 +36,12 @@
 
     <img id="preview" alt="プレビュー">
     
-    <button id="send-btn" class="btn-send">投稿する</button>
+    <div class="disclaimer">
+        ※ 広告・宣伝や公序良俗に反する不適切な投稿は固くお断りいたします。<br>
+        ※ 投稿された画像の所有権および当サイトでの掲載権は「秋田デトサウナ」に帰属するものとします。
+    </div>
+    
+    <button id="send-btn" class="btn-send">同意して投稿する</button>
     <div id="loading"><i class="fas fa-spinner spinner"></i> 投稿中...</div>
     
     <a href="index.html" class="back-link">サイトに戻る</a>

@@ -86,18 +86,61 @@ document.addEventListener('DOMContentLoaded', () => {
         if (guestGallery) {
             guestGallery.innerHTML = '';
             guestImages.forEach(imgSrc => {
-                const item = createGalleryItem(imgSrc, 'guest-item');
+                let dateStr = '';
+                // ファイル名からタイムスタンプを抽出 (例: 1715012345678_photo.jpg)
+                const parts = imgSrc.split('/');
+                const filename = parts[parts.length - 1]; 
+                const timestampMatch = filename.match(/^(\d{13})_/);
+                
+                if (timestampMatch) {
+                    const d = new Date(parseInt(timestampMatch[1]));
+                    const y = d.getFullYear();
+                    const m = (d.getMonth() + 1).toString().padStart(2, '0');
+                    const day = d.getDate().toString().padStart(2, '0');
+                    dateStr = `${y}.${m}.${day}`;
+                }
+
+                const item = createGalleryItem(imgSrc, 'guest-item', dateStr);
                 guestGallery.appendChild(item);
                 fadeObservers.observe(item);
             });
+
+            // 📸 空のプレースホルダー枠を追加（常に合計20枠になるようにする）
+            const maxGuestSlots = 20;
+            const currentGuestCount = guestImages.length;
+            const emptySlotsNeeded = Math.max(0, maxGuestSlots - currentGuestCount);
+
+            for (let i = 0; i < emptySlotsNeeded; i++) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'guest-item placeholder fade-up';
+                placeholder.innerHTML = `
+                    <div class="placeholder-content">
+                        <i class="fas fa-camera"></i>
+                        <span>Coming soon</span>
+                        <p>投稿お待ち<br>してます！</p>
+                    </div>
+                `;
+                // クリックしたら投稿ページに飛ぶようにする
+                placeholder.addEventListener('click', () => {
+                    window.location.href = 'post.html';
+                });
+                
+                guestGallery.appendChild(placeholder);
+                fadeObservers.observe(placeholder);
+            }
         }
     }
 
     // ギャラリーアイテム作成ヘルパー
-    function createGalleryItem(src, className = 'insta-item') {
+    function createGalleryItem(src, className = 'insta-item', dateText = '') {
         const item = document.createElement('div');
         item.className = `${className} fade-up`;
-        item.innerHTML = `<img src="${src}" alt="デトサウナの風景">`;
+        
+        let innerHtmlStr = `<img src="${src}" alt="デトサウナの風景">`;
+        if (dateText) {
+            innerHtmlStr += `<div class="guest-date">${dateText}</div>`;
+        }
+        item.innerHTML = innerHtmlStr;
         
         // クリックイベント (Lightbox)
         item.addEventListener('click', () => {

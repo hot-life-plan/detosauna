@@ -279,6 +279,21 @@ section {
     overflow: hidden;
     cursor: pointer;
     border-radius: 4px;
+    position: relative; /* 日付の配置用 */
+}
+
+.guest-date {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-family: 'Helvetica Neue', sans-serif;
+    letter-spacing: 1px;
+    pointer-events: none; /* クリックの邪魔にならないように */
 }
 
 .guest-item img {
@@ -290,6 +305,52 @@ section {
 
 .guest-item:hover img {
     filter: brightness(1.2);
+}
+
+/* Guest Gallery Placeholders */
+.guest-item.placeholder {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.guest-item.placeholder:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent);
+}
+
+.placeholder-content {
+    color: rgba(255, 255, 255, 0.5);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    pointer-events: none;
+}
+
+.placeholder-content i {
+    font-size: 1.5rem;
+    color: var(--accent);
+    opacity: 0.7;
+}
+
+.placeholder-content span {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: bold;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.placeholder-content p {
+    font-size: 0.7rem;
+    margin: 0;
+    line-height: 1.4;
+    color: var(--text-sub);
 }
 
 /* Lightbox */
@@ -304,8 +365,8 @@ section {
 }
 
 .lightbox-content {
-    max-width: 90%;
-    max-height: 80%;
+    max-width: 98%;
+    max-height: 95%;
     border-radius: 10px;
     box-shadow: 0 0 50px rgba(0,0,0,0.5);
 }
@@ -448,6 +509,37 @@ footer {
     .hero-content h1 {
         font-size: 2.2rem;
         padding-top: 20px; /* ロゴとの重なり防止 */
+    }
+
+    /* Guest Gallery Slider for Mobile */
+    .guest-grid {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 20px;
+        padding-left: 20px; /* 画面端の見栄え用 */
+        padding-right: 20px;
+        margin-left: -20px; /* Containerからはみ出させる */
+        margin-right: -20px;
+        scroll-behavior: smooth;
+    }
+    
+    .guest-grid::-webkit-scrollbar {
+        height: 6px;
+    }
+    .guest-grid::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+    }
+    .guest-grid::-webkit-scrollbar-thumb {
+        background-color: var(--accent);
+        border-radius: 3px;
+    }
+    
+    .guest-item {
+        flex: 0 0 calc(50% - 10px); /* 画面にちょうど2枚少しはみ出るサイズ感 */
+        min-width: 140px;
+        scroll-snap-align: start;
     }
 }
 
