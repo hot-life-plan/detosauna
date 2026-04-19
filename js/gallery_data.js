@@ -13,7 +13,5 @@ const AVAILABLE_IMAGES = [
   "img/line_oa_chat_260404_192700.jpg",
   "img/line_oa_chat_260404_192703.jpg",
   "img/line_oa_chat_260404_192705.jpg",
-  "img/line_oa_chat_260404_192708.jpg",
-  "img/guest/1776584076599_guest_photo.jpg",
-  "img/guest/1776585197649_guest_photo.jpg"
+  "img/line_oa_chat_260404_192708.jpg"
 ];
