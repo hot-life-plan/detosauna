@@ -128,6 +128,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 guestGallery.appendChild(placeholder);
                 fadeObservers.observe(placeholder);
             }
+
+            // 🚀 自動スライド（カルーセル）機能
+            let autoScrollInterval;
+            const startAutoScroll = () => {
+                // 3秒に1回動かす
+                autoScrollInterval = setInterval(() => {
+                    const maxScrollLeft = guestGallery.scrollWidth - guestGallery.clientWidth;
+                    // 一番右まで到達していたら最初に戻る
+                    if (guestGallery.scrollLeft >= maxScrollLeft - 10) {
+                        guestGallery.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        // 1個分の横幅(gapの15pxも含む)を計算して右へスライド
+                        const firstItem = guestGallery.querySelector('.guest-item');
+                        if (firstItem) {
+                            const slideAmount = firstItem.offsetWidth + 15;
+                            guestGallery.scrollBy({ left: slideAmount, behavior: 'smooth' });
+                        }
+                    }
+                }, 3000);
+            };
+            const stopAutoScroll = () => clearInterval(autoScrollInterval);
+
+            // 自動スライド開始
+            startAutoScroll();
+
+            // ユーザーが触っている時（ホバーやスワイプ中）は自動スライドを一時停止する
+            guestGallery.addEventListener('mouseenter', stopAutoScroll);
+            guestGallery.addEventListener('mouseleave', startAutoScroll);
+            guestGallery.addEventListener('touchstart', stopAutoScroll, {passive: true});
+            guestGallery.addEventListener('touchend', startAutoScroll);
         }
     }
 
