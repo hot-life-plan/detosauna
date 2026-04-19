@@ -1,6 +1,4 @@
 const AVAILABLE_IMAGES = [
-        'img/guest/1776594947515_guest_photo.jpg',
-        'img/guest/1776594683485_guest_photo.jpg',
   "img/line_oa_chat_260404_192627.jpg",
   "img/line_oa_chat_260404_192633.jpg",
   "img/line_oa_chat_260404_192635.jpg",
@@ -15,5 +13,6 @@ const AVAILABLE_IMAGES = [
   "img/line_oa_chat_260404_192700.jpg",
   "img/line_oa_chat_260404_192703.jpg",
   "img/line_oa_chat_260404_192705.jpg",
-  "img/line_oa_chat_260404_192708.jpg"
+  "img/line_oa_chat_260404_192708.jpg",
+  "img/guest/1776594947515_guest_photo.jpg"
 ];
