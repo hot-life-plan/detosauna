@@ -144,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let isPaused = false;
             let isDragging = false;
             let startX = 0;
+            let startY = 0; // ★縦方向の開始位置
             let startCurrentX = 0;
             let trackHistory = []; // ★移動履歴を保存する配列を追加
 
@@ -184,7 +185,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     velocity = 0;
                     trackHistory = [];
                     const x = e.touches[0].pageX;
+                    const y = e.touches[0].pageY; // 縦位置も記録
                     startX = x;
+                    startY = y;
                     startCurrentX = currentX;
                     trackHistory.push({ x, t: Date.now() });
                 } else {
@@ -199,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const moveDrag = (e) => {
                 const x = e.pageX || (e.touches ? e.touches[0].pageX : 0);
+                const y = e.pageY || (e.touches ? e.touches[0].pageY : 0);
                 
                 if (isDragging) {
                     // ドラッグ中（クリック中またはスマホ）
@@ -206,6 +210,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         const t = Date.now();
                         trackHistory.push({ x, t });
                         if (trackHistory.length > 10) trackHistory.shift();
+                        
+                        // ★縦移動が大きければスクロールを優先する
+                        const deltaX = Math.abs(x - startX);
+                        const deltaY = Math.abs(y - startY);
+                        if (deltaY > deltaX && deltaY > 10) {
+                            isDragging = false;
+                            return;
+                        }
+                        if(e.cancelable) e.preventDefault();
                     }
                     const walk = x - startX;
                     currentX = startCurrentX + walk;

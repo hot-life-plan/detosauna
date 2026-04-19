@@ -265,16 +265,24 @@ section {
     color: var(--white);
 }
 
-/* Guest Gallery Slider (Global) - 画面幅いっぱいに展開 */
+/* Guest Gallery Slider (Global) - 画面幅いっぱいに安全に展開 */
 .guest-grid {
-    overflow-x: hidden;
+    position: relative;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    left: 0;
+    overflow: hidden;
     min-height: 215px;
     padding-bottom: 20px;
-    position: relative;
-    /* セクションの左右paddingを突き破って100vw化 */
-    width: 100vw;
-    left: 50%;
-    margin-left: -50vw;
+    /* ドラッグ中にテキスト選択されないようにする */
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grab; /* 掴めることを示す手袋アイコン */
+    touch-action: pan-y; /* ★縦スクロールを許可、横はJSで制御 */
+}
+
+.guest-grid:active {
+    cursor: grabbing; /* 掴んでいる間のアイコン */
 }
 
 /* スクロールバー非表示 */
@@ -333,13 +341,12 @@ section {
     align-items: center;
     text-align: center;
     box-sizing: border-box;
-    cursor: pointer;
+    cursor: default; /* これで指マークが出なくなります */
     transition: background 0.3s, border-color 0.3s;
 }
 
 .guest-item.placeholder:hover {
-    background: rgba(242, 166, 90, 0.1);
-    border-color: var(--accent);
+    border-color: rgba(242, 166, 90, 0.5); /* 枠を少し光らせる程度に */
 }
 
 .placeholder-content {
@@ -530,12 +537,13 @@ footer {
         padding-top: 20px; /* ロゴとの重なり防止 */
     }
 
-    /* Guest Gallery Customization for Mobile */
+    /* Guest Gallery Slider - Mobile Reset */
     .guest-grid {
-        /* ベースの100vw設定を維持するため、余計なmargin/padding上書きを削除 */
+        width: 100vw !important;
+        margin-left: calc(50% - 50vw) !important;
+        left: 0 !important;
         padding-left: 0;
         padding-right: 0;
-        gap: 10px;
     }
     
     .guest-item {
