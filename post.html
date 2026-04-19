@@ -109,10 +109,11 @@
                 alert('投稿ありがとうございます！反映まで数分お待ちください。');
                 window.location.href = 'index.html';
             } else {
-                throw new Error('Upload failed');
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `Upload failed (Status: ${res.status})`);
             }
         } catch (e) {
-            alert('投稿に失敗しました。時間をおいて再度お試しください。');
+            alert('投稿に失敗しました。\n詳細: ' + e.message + '\n\n時間をおいて再度お試しください。');
             sendBtn.style.display = 'block';
             loading.style.display = 'none';
         }
