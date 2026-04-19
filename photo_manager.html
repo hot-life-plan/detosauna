@@ -169,8 +169,8 @@
         BRANCH: 'main',
         JS_PATH: 'js/gallery_data.js',
         DIRS: {
-            OFFICIAL: 'img/',
-            GUEST: 'img/guest/'
+            OFFICIAL: 'img',
+            GUEST: 'img/guest'
         }
     };
 
@@ -193,7 +193,10 @@
                 ...options.headers
             }
         });
-        if (!res.ok && res.status !== 404) throw new Error(await res.text());
+        if (!res.ok && res.status !== 404) {
+            console.error('GH API ERROR:', await res.text());
+            throw new Error('API通信エラー');
+        }
         if (res.status === 404) return [];
         return res.json();
     }
@@ -261,19 +264,22 @@
     function renderGrid(container, files, dirPath) {
         container.innerHTML = '';
         const list = Array.isArray(files) ? files : [];
-        const imgs = list.filter(f => f.name.match(/\.(jpg|jpeg|png|webp)$/i));
+        // type: 'file' であること、かつ画像拡張子であることを確認（フォルダを除外）
+        const imgs = list.filter(f => f.type === 'file' && f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
         
         if (imgs.length === 0) {
-            container.innerHTML = '<p style="color:#666; font-size:0.8rem;">画像はありません</p>';
+            container.innerHTML = '<p style="color:#666; font-size:0.8rem;">表示する画像がありません</p>';
             return;
         }
 
         imgs.forEach(file => {
             const div = document.createElement('div');
             div.className = 'img-item';
+            // フルパスを正しく組み立て（dirPathにスラッシュを補完）
+            const fullPath = `${dirPath}/${file.name}`;
             div.innerHTML = `
                 <img src="${file.download_url}" alt="">
-                <button class="del-btn" onclick="deletePhoto('${dirPath}${file.name}', '${file.sha}')"><i class="fas fa-trash-alt"></i></button>
+                <button class="del-btn" onclick="deletePhoto('${fullPath}', '${file.sha}')"><i class="fas fa-trash-alt"></i></button>
             `;
             container.appendChild(div);
         });

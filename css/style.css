@@ -532,15 +532,14 @@ footer {
 
     /* Guest Gallery Customization for Mobile */
     .guest-grid {
-        padding-left: 20px;
-        padding-right: 20px;
-        margin-left: -20px;
-        margin-right: -20px;
+        /* ベースの100vw設定を維持するため、余計なmargin/padding上書きを削除 */
+        padding-left: 0;
+        padding-right: 0;
         gap: 10px;
     }
     
     .guest-item {
-        flex: 0 0 160px; /* 無限ループの滑らかさのため固定サイズに変更 */
+        flex: 0 0 160px;
     }
 }
 
