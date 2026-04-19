@@ -315,9 +315,12 @@
     }
 
     async function loadAllGalleries() {
+        const btn = document.querySelector('button[onclick="loadAllGalleries()"]');
+        const originalText = btn.innerHTML;
         try {
-            document.getElementById('official-grid').innerText = '読込中...';
-            document.getElementById('guest-grid').innerText = '読込中...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 読込中...';
+            document.getElementById('official-grid').innerText = '通信中...';
+            document.getElementById('guest-grid').innerText = '通信中...';
 
             log('--- 全読込開始 ---');
             const [offFiles, guestFiles] = await Promise.all([
@@ -334,19 +337,19 @@
             document.getElementById('status-bar').firstElementChild.innerText = 'データ読込完了';
         } catch (e) {
             log(`致命的なエラー: ${e.message}`);
-            alert('データの取得に失敗しました。デバッグログを確認してください。');
+            alert('データの取得に失敗しました。');
+        } finally {
+            btn.innerHTML = originalText;
         }
     }
 
     function renderGrid(container, files, dirPath) {
         container.innerHTML = '';
         if (!Array.isArray(files)) {
-            log(`Warn: renderGrid に配列でないデータが渡されました (${dirPath})`);
             container.innerHTML = 'データなし';
             return;
         }
 
-        // フォルダを除き、画像のみをフィルタ
         const imgs = files.filter(f => f.type === 'file' && f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i));
         
         if (imgs.length === 0) {
@@ -359,16 +362,18 @@
             div.className = 'img-item';
             div.innerHTML = `
                 <img src="${file.download_url}" alt="">
-                <button class="del-btn" onclick="deletePhoto('${file.path}', '${file.sha}')"><i class="fas fa-trash-alt"></i></button>
+                <button class="del-btn" onclick="deletePhoto(this, '${file.path}', '${file.sha}')"><i class="fas fa-trash-alt"></i></button>
             `;
             container.appendChild(div);
         });
     }
 
-    async function deletePhoto(path, sha) {
-        if (!confirm(`この写真を削除しますか？\n${path}`)) return;
+    async function deletePhoto(btn, path, sha) {
+        if (!confirm(`この写真を完全に削除しますか？\n${path}`)) return;
+        const originalHtml = btn.innerHTML;
         
         try {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             log(`削除実行: ${path}`);
             await ghFetch(path, {
                 method: 'DELETE',
@@ -378,17 +383,21 @@
                     branch: CONFIG.BRANCH
                 })
             });
-            alert('削除しました。一覧を更新します。');
+            alert('削除しました。');
             loadAllGalleries();
         } catch (e) {
-            alert('削除に失敗しました: ' + e.message);
+            alert('削除失敗: ' + e.message);
+            btn.innerHTML = originalHtml;
         }
     }
 
     async function syncMapping() {
-        if (!confirm('GitHub上の全画像をスキャンし、gallery_data.js を更新しますか？')) return;
+        if (!confirm(' gallery_data.js を更新してサイトを最新の状態にしますか？')) return;
+        const btn = document.querySelector('button[onclick="syncMapping()"]');
+        const originalText = btn.innerHTML;
 
         try {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 同期中...';
             log('--- 同期処理開始 ---');
             const [offFiles, guestFiles] = await Promise.all([
                 ghFetch(CONFIG.DIRS.OFFICIAL),
@@ -396,38 +405,30 @@
             ]);
 
             const allPaths = [];
-            // 公式（img/ 直下）
             offFiles.filter(f => f.type === 'file' && f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i))
                     .forEach(f => allPaths.push(f.path));
             
-            // ゲスト（img/guest/ 直下）
             guestFiles.filter(f => f.type === 'file' && f.name.match(/\.(jpg|jpeg|png|webp|gif)$/i))
                      .forEach(f => allPaths.push(f.path));
 
-            log(`合計 ${allPaths.length} 枚の画像を検知しました。`);
-
-            // JSファイルの中身を生成
             const jsContent = `const AVAILABLE_IMAGES = ${JSON.stringify(allPaths, null, 2)};`;
-            
-            // 現在のJSファイルのSHAを取得
             const currentJs = await ghFetch(CONFIG.JS_PATH);
-            const sha = currentJs.sha;
-
-            // アップロード
-            log('gallery_data.js を送信中...');
+            
             await ghFetch(CONFIG.JS_PATH, {
                 method: 'PUT',
                 body: JSON.stringify({
                     message: "Update gallery mapping via manager",
                     content: btoa(unescape(encodeURIComponent(jsContent))),
-                    sha: sha,
+                    sha: currentJs.sha,
                     branch: CONFIG.BRANCH
                 })
             });
 
-            alert('自動同期が完了しました！サイトに反映されるまで数分かかる場合があります。');
+            alert('同期が完了しました！');
         } catch (e) {
             alert('同期失敗: ' + e.message);
+        } finally {
+            btn.innerHTML = originalText;
         }
     }
 
