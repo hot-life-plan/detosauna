@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>思い出を投稿する | デトサウナ</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background: #051421; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .post-card { background: #1a1e21; padding: 30px; border-radius: 20px; width: 100%; max-width: 500px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .logo-small { height: 50px; margin-bottom: 20px; }
+        h1 { font-size: 1.25rem; margin-bottom: 30px; color: #fff; }
+        #drop-area { border: 2px dashed #f2a65a; border-radius: 15px; padding: 40px 20px; cursor: pointer; color: #f2a65a; margin-bottom: 20px; transition: 0.3s; }
+        #drop-area:hover { background: rgba(242, 166, 90, 0.1); }
+        #preview { width: 100%; border-radius: 10px; display: none; margin-bottom: 20px; }
+        .btn-send { background: #f2a65a; color: #051421; width: 100%; padding: 15px; border: none; border-radius: 50px; font-weight: bold; font-size: 1rem; cursor: pointer; display: none; }
+        .back-link { margin-top: 20px; display: block; color: #b0ccd7; font-size: 0.9rem; }
+        #loading { display: none; color: #f2a65a; margin-top: 10px; }
+        .spinner { animation: spin 1s linear infinite; display: inline-block; margin-right: 8px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="post-card">
+    <img src="detosauna_logo_page-0001.png" class="logo-small" alt="DETO SAUNA">
+    <h1>思い出を投稿する</h1>
+
+    <div id="drop-area">
+        <i class="fas fa-image fa-3x" style="margin-bottom: 10px;"></i>
+        <p style="margin:0">写真を撮影・選択</p>
+        <input type="file" id="file-input" style="display:none" accept="image/*">
+    </div>
+
+    <img id="preview" alt="プレビュー">
+    
+    <button id="send-btn" class="btn-send">投稿する</button>
+    <div id="loading"><i class="fas fa-spinner spinner"></i> 投稿中...</div>
+    
+    <a href="index.html" class="back-link">サイトに戻る</a>
+</div>
+
+<script>
+    // 【重要】作成したWorkerのURLに書き換えてください
+    const API_ENDPOINT = 'https://detosauna-api.hot-life.workers.dev/';
+
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('file-input');
+    const preview = document.getElementById('preview');
+    const sendBtn = document.getElementById('send-btn');
+    const loading = document.getElementById('loading');
+
+    let processedImageBase64 = '';
+
+    dropArea.onclick = () => fileInput.click();
+
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                // 自動リサイズ処理 (最大横幅1200px)
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const MAX_WIDTH = 1200;
+
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                processedImageBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                preview.src = canvas.toDataURL('image/jpeg');
+                preview.style.display = 'block';
+                dropArea.style.display = 'none';
+                sendBtn.style.display = 'block';
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    sendBtn.onclick = async () => {
+        if (!processedImageBase64) return;
+
+        sendBtn.style.display = 'none';
+        loading.style.display = 'block';
+
+        try {
+            const res = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                body: JSON.stringify({
+                    image: processedImageBase64,
+                    filename: 'guest_photo.jpg'
+                })
+            });
+
+            if (res.ok) {
+                alert('投稿ありがとうございます！反映まで数分お待ちください。');
+                window.location.href = 'index.html';
+            } else {
+                throw new Error('Upload failed');
+            }
+        } catch (e) {
+            alert('投稿に失敗しました。時間をおいて再度お試しください。');
+            sendBtn.style.display = 'block';
+            loading.style.display = 'none';
+        }
+    };
+</script>
+
+</body>
+</html>

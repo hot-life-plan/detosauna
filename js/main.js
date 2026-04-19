@@ -60,23 +60,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 3. ランダムギャラリーの自動挿入
-    const galleryContainer = document.getElementById('random-gallery');
-    if (galleryContainer && shuffledImages.length > 0) {
-        galleryContainer.innerHTML = ''; // 一旦中身を空にする
+    // 3. ギャラリーの自動挿入 (公式とゲストの振り分け)
+    const officialGallery = document.getElementById('random-gallery');
+    const guestGallery = document.getElementById('guest-gallery-list');
+    
+    if (shuffledImages.length > 0) {
+        // --- ゲストの投稿（img/guest/ で始まるもの）を抽出 ---
+        // ※Workerが配列の先頭に追加するため、そのままの順番＝新着順になります
+        const guestImages = AVAILABLE_IMAGES.filter(src => src.startsWith('img/guest/'));
         
-        // 全画像の中からランダムに順番を入れ替えた最初の8枚を取得
-        const galleryTargetImages = shuffledImages.slice(0, 8);
+        // --- 公式の写真（それ以外）を抽出してシャッフル ---
+        const officialImages = shuffleArray(AVAILABLE_IMAGES.filter(src => !src.startsWith('img/guest/')));
+
+        // 公式ギャラリー（ランダム8枚表示）
+        if (officialGallery) {
+            officialGallery.innerHTML = '';
+            officialImages.slice(0, 8).forEach(imgSrc => {
+                const item = createGalleryItem(imgSrc);
+                officialGallery.appendChild(item);
+                fadeObservers.observe(item);
+            });
+        }
+
+        // ゲストギャラリー（全件・新着順表示）
+        if (guestGallery) {
+            guestGallery.innerHTML = '';
+            guestImages.forEach(imgSrc => {
+                const item = createGalleryItem(imgSrc, 'guest-item');
+                guestGallery.appendChild(item);
+                fadeObservers.observe(item);
+            });
+        }
+    }
+
+    // ギャラリーアイテム作成ヘルパー
+    function createGalleryItem(src, className = 'insta-item') {
+        const item = document.createElement('div');
+        item.className = `${className} fade-up`;
+        item.innerHTML = `<img src="${src}" alt="デトサウナの風景">`;
         
-        galleryTargetImages.forEach(imgSrc => {
-            const item = document.createElement('div');
-            item.className = 'insta-item fade-up';
-            item.innerHTML = `<img src="${imgSrc}" alt="デトサウナの風景">`;
-            galleryContainer.appendChild(item);
-            
-            // フェードインのアニメーションをセット
-            fadeObservers.observe(item);
+        // クリックイベント (Lightbox)
+        item.addEventListener('click', () => {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            lightboxImg.src = src;
+            lightbox.style.display = 'flex';
         });
+        
+        return item;
     }
 
     // 4. Header transparency change on scroll

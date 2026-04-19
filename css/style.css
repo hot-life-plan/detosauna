@@ -17,12 +17,17 @@
     box-sizing: border-box;
 }
 
+section {
+    scroll-margin-top: 100px; /* アンカーリンクで飛んだ時にヘッダーに隠れないようにする */
+}
+
 body {
     background-color: var(--primary-bg);
     color: var(--text-main);
     font-family: 'Noto Sans JP', sans-serif;
     line-height: 1.8;
     overflow-x: hidden;
+    padding-top: 80px; /* 固定ヘッダー分の余白を追加 */
 }
 
 h1, h2, h3 {
@@ -79,6 +84,10 @@ header {
 
 .nav-links a:hover {
     color: var(--accent);
+}
+
+.cta-btn.nav-btn {
+    display: block;
 }
 
 /* Hero Section */
@@ -256,6 +265,60 @@ section {
     color: var(--white);
 }
 
+/* Guest Gallery Grid */
+.guest-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.guest-item {
+    aspect-ratio: 1/1;
+    overflow: hidden;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.guest-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.3s;
+}
+
+.guest-item:hover img {
+    filter: brightness(1.2);
+}
+
+/* Lightbox */
+.lightbox {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.95);
+    justify-content: center;
+    align-items: center;
+}
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 80%;
+    border-radius: 10px;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+}
+
+.lightbox .close {
+    position: absolute;
+    top: 20px; right: 30px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
 /* Pricing Card */
 .pricing {
     display: flex;
@@ -382,4 +445,29 @@ footer {
     section {
         padding: 60px 5%;
     }
+    .hero-content h1 {
+        font-size: 2.2rem;
+        padding-top: 20px; /* ロゴとの重なり防止 */
+    }
 }
+
+/* FAQ Section */
+#faq {
+    padding-bottom: 150px;
+}
+.faq-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.faq-item h4 {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 1.1rem;
+    font-family: 'Noto Sans JP', sans-serif;
+}
+.faq-item i {
+    margin-top: 5px;
+}
+

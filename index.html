@@ -154,14 +154,37 @@
     <!-- Gallery Section -->
     <section id="gallery">
         <div class="section-title fade-up">
-            <span class="en-title">GALLERY</span>
-            <h2>ギャラリー</h2>
+            <span class="en-title">OFFICIAL GALLERY</span>
+            <h2>公式ギャラリー</h2>
             <p style="color: var(--text-sub); margin-top: 10px;">デトサウナの実際の雰囲気をご覧ください。</p>
         </div>
         <div class="insta-grid" id="random-gallery">
             <!-- js/main.js によってランダムな画像が自動挿入されます -->
         </div>
     </section>
+
+    <!-- Guest Gallery Section -->
+    <section id="guest-gallery" style="background-color: var(--primary-bg); border-top: 1px solid var(--glass-border);">
+        <div class="section-title fade-up">
+            <span class="en-title">GUEST MEMORIES</span>
+            <h2>みんなの思い出</h2>
+            <p style="color: var(--text-sub); margin-top: 10px;">お客様から投稿いただいた写真をご紹介します。</p>
+            <div style="margin-top: 20px;">
+                <a href="post.html" class="cta-btn" style="background: var(--white); color: var(--primary-bg); font-size: 0.9rem; padding: 10px 25px;">
+                    <i class="fas fa-camera"></i> 写真を投稿する
+                </a>
+            </div>
+        </div>
+        <div class="guest-grid" id="guest-gallery-list">
+            <!-- ゲストの写真はここに新着順で表示されます -->
+        </div>
+    </section>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox" onclick="this.style.display='none'">
+        <span class="close">&times;</span>
+        <img class="lightbox-content" id="lightbox-img">
+    </div>
 
     <!-- Price Section -->
     <section id="price" style="background-color: var(--secondary-bg);">
