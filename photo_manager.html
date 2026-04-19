@@ -275,7 +275,7 @@
         imgs.forEach(file => {
             const div = document.createElement('div');
             div.className = 'img-item';
-            // フルパスを正しく組み立て（dirPathにスラッシュを補完）
+            // dirPathが img なら img/file.jpg、img/guest なら img/guest/file.jpg
             const fullPath = `${dirPath}/${file.name}`;
             div.innerHTML = `
                 <img src="${file.download_url}" alt="">

@@ -103,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p>あなたの写真を<br>投稿してね！</p>
                     </div>
                 `;
-                placeholder.addEventListener('click', () => { window.location.href = 'post.html'; });
                 guestGallery.appendChild(placeholder);
             }
 
@@ -119,9 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const clone = item.cloneNode(true);
                 clone.style.opacity = '1'; // クローンも必ず表示
                 // クリックイベント再設定
-                if (clone.classList.contains('placeholder')) {
-                    clone.addEventListener('click', () => { window.location.href = 'post.html'; });
-                } else {
+                if (!clone.classList.contains('placeholder')) {
                     const origImg = item.querySelector('img');
                     if (origImg) {
                         clone.addEventListener('click', () => {
@@ -138,45 +135,123 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemWidth = 200 + 15; // flex: 0 0 200px + gap: 15px
             const totalWidth = origItems.length * itemWidth;
 
+            console.log("Slider Version: Hyper Momentum v2.0 Loaded");
             let currentX = 0;
-            const speed = 0.3; // px/frame ← 数値を小さくするとさらにゆっくりになります
+            const speed = 0.3; // 自動再生
+            let velocity = 0;
+            const friction = 0.992; 
+            
             let isPaused = false;
+            let isDragging = false;
+            let startX = 0;
+            let startCurrentX = 0;
+            let trackHistory = []; // ★移動履歴を保存する配列を追加
 
-            // 内側ラッパーを作ってtransformを掛ける
-            // -- .guest-grid は overflow:hidden のまま枠として使い、
-            //    中に .slider-inner を作って translateX する方式 --
+            // --- 内側ラッパー作成 ---
             const inner = document.createElement('div');
             inner.className = 'slider-inner';
             inner.style.cssText = 'display:flex; gap:15px; will-change:transform; flex-shrink:0;';
-            // 全子要素を inner に移動
             [...track.children].forEach(child => inner.appendChild(child));
-            // trackを空にして innerを入れ直す
             track.innerHTML = '';
-            track.style.overflowX = 'hidden'; // 枠はhidden
-            track.style.flexWrap = 'unset';
-            track.style.display = 'block'; // flex解除→innerがはみ出すように
+            track.style.overflowX = 'hidden';
+            track.style.display = 'block';
             track.style.position = 'relative';
             track.appendChild(inner);
 
             const animateSlide = () => {
-                if (!isPaused) {
+                if (!isDragging && !isPaused) {
+                    // 自動再生
                     currentX -= speed;
-                    // オリジナル1セット分流れ切ったら瞬時にリセット（繋ぎ目なし）
-                    if (Math.abs(currentX) >= totalWidth) {
-                        currentX = 0;
-                    }
-                    inner.style.transform = `translateX(${currentX}px)`;
+                    currentX += velocity;
+                    velocity *= friction;
+                    if (Math.abs(velocity) < 0.1) velocity = 0;
                 }
+
+                // 無限ループ境界チェック
+                if (Math.abs(currentX) >= totalWidth) currentX += totalWidth;
+                if (currentX > 0) currentX -= totalWidth;
+                
+                inner.style.transform = `translateX(${currentX}px)`;
                 requestAnimationFrame(animateSlide);
             };
 
             requestAnimationFrame(animateSlide);
 
-            // ホバー/タッチで一時停止
-            track.addEventListener('mouseenter', () => isPaused = true);
-            track.addEventListener('mouseleave', () => isPaused = false);
-            track.addEventListener('touchstart', () => isPaused = true, { passive: true });
-            track.addEventListener('touchend', () => isPaused = false);
+            // --- ドラッグ / スワイプ（スマホ用） & 追従（PC用） ---
+            const startDrag = (e) => {
+                if (e.type === 'touchstart') {
+                    isDragging = true;
+                    velocity = 0;
+                    trackHistory = [];
+                    const x = e.touches[0].pageX;
+                    startX = x;
+                    startCurrentX = currentX;
+                    trackHistory.push({ x, t: Date.now() });
+                } else {
+                    // PCマウスでのクリックドラッグも念のため残すが、基本は追従
+                    isDragging = true;
+                    startX = e.pageX;
+                    lastX = e.pageX;
+                    startCurrentX = currentX;
+                }
+                inner.style.transition = 'none';
+            };
+
+            const moveDrag = (e) => {
+                const x = e.pageX || (e.touches ? e.touches[0].pageX : 0);
+                
+                if (isDragging) {
+                    // ドラッグ中（クリック中またはスマホ）
+                    if (e.touches) {
+                        const t = Date.now();
+                        trackHistory.push({ x, t });
+                        if (trackHistory.length > 10) trackHistory.shift();
+                    }
+                    const walk = x - startX;
+                    currentX = startCurrentX + walk;
+                } else if (isPaused) {
+                    // ★【新機能】マウスが乗っているだけの時（クリックなし追従）
+                    const deltaX = x - lastX;
+                    currentX += deltaX;
+                }
+                
+                lastX = x;
+                if(e.cancelable) e.preventDefault();
+            };
+
+            const endDrag = () => {
+                if (isDragging && trackHistory.length > 2) {
+                    const first = trackHistory[0];
+                    const last = trackHistory[trackHistory.length - 1];
+                    const dt = last.t - first.t;
+                    const dx = last.x - first.x;
+                    if (dt > 20) {
+                        velocity = (dx / dt) * 16.6 * 2.5; // スマホはさらに滑らかに
+                    }
+                }
+                isDragging = false;
+                trackHistory = [];
+            };
+
+            // 標準の画像ドラッグ機能を無効化
+            track.addEventListener('dragstart', (e) => e.preventDefault());
+
+            track.addEventListener('mousedown', startDrag);
+            window.addEventListener('mousemove', moveDrag);
+            window.addEventListener('mouseup', endDrag);
+
+            track.addEventListener('touchstart', startDrag, { passive: false });
+            window.addEventListener('touchmove', moveDrag, { passive: false });
+            window.addEventListener('touchend', endDrag);
+
+            // マウスが乗ったら自動再生を止めて「追従モード」へ
+            track.addEventListener('mouseenter', (e) => {
+                isPaused = true;
+                lastX = e.pageX;
+            });
+            track.addEventListener('mouseleave', () => {
+                isPaused = false;
+            });
         }
     }
 
@@ -185,7 +260,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = document.createElement('div');
         item.className = `${className} fade-up`;
         
-        let innerHtmlStr = `<img src="${src}" alt="デトサウナの風景">`;
+        // draggable="false" を追加してマウス操作を安定させる
+        let innerHtmlStr = `<img src="${src}" alt="デトサウナの風景" draggable="false">`;
         if (dateText) {
             innerHtmlStr += `<div class="guest-date">${dateText}</div>`;
         }
