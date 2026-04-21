@@ -1,4 +1,5 @@
 const AVAILABLE_IMAGES = [
+        'img/guest/1776738962600_guest_photo.jpg',
   "img/line_oa_chat_260404_192627.jpg",
   "img/line_oa_chat_260404_192633.jpg",
   "img/line_oa_chat_260404_192635.jpg",
